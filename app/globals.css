@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --paper: #0e0d0b;
+  --paper-2: #16140f;
+  --ink: #e8e2d4;
+  --ink-dim: #9a9384;
+  --amber: #d9a441;
+  --amber-dim: #8a6d2e;
+  --line: #2a261d;
+  --alert: #c0533b;
+  --ok: #6f8f5a;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* textura sutil de papel/grão */
+body::before {
+  content: "";
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(rgba(217,164,65,0.025) 1px, transparent 1px);
+  background-size: 4px 4px;
+}
+
+.serif { font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .fade-in { animation: fade 0.5s ease both; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}
+
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 0; }
+::-webkit-scrollbar-track { background: var(--paper); }

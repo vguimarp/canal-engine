@@ -1,0 +1,25 @@
+{
+  "name": "canal-engine",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "description": "Sistema de inteligência e produção assistida para canal de YouTube — pesquisa de tendências, geração de ideias, roteiros, SEO, thumbnails, métricas e estratégia. Construído para conteúdo ORIGINAL e em conformidade com a política de conteúdo inautêntico do YouTube (jul/2025).",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "seed": "node scripts/seed.mjs",
+    "setup": "node scripts/setup.mjs"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.10.0",
+    "next": "14.2.15",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17"
+  }
+}
