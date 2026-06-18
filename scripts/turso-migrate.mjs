@@ -17,6 +17,17 @@ import { seedDatabase, clearTables } from "../lib/seedData.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..");
 
+// Carrega .env.local (se existir) sem dependências — assim basta criar o
+// arquivo com TURSO_DATABASE_URL e TURSO_AUTH_TOKEN e rodar este script.
+for (const file of [".env.local", ".env"]) {
+  const p = path.join(root, file);
+  if (!fs.existsSync(p)) continue;
+  for (const line of fs.readFileSync(p, "utf-8").split("\n")) {
+    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
+    if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
+  }
+}
+
 const rawUrl = process.env.TURSO_DATABASE_URL;
 const authToken = process.env.TURSO_AUTH_TOKEN;
 
