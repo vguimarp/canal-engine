@@ -10,10 +10,13 @@
     "start": "next start",
     "seed": "node scripts/seed.mjs",
     "setup": "node scripts/setup.mjs",
-    "vercel-build": "node scripts/seed.mjs && next build"
+    "vercel-build": "node scripts/vercel-prebuild.mjs && next build",
+    "turso:migrate": "node scripts/turso-migrate.mjs"
   },
   "dependencies": {
+    "@libsql/client": "^0.17.4",
     "better-sqlite3": "^11.10.0",
+    "libsql": "^0.5.29",
     "next": "14.2.15",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
