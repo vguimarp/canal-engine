@@ -9,7 +9,8 @@
     "build": "next build",
     "start": "next start",
     "seed": "node scripts/seed.mjs",
-    "setup": "node scripts/setup.mjs"
+    "setup": "node scripts/setup.mjs",
+    "vercel-build": "node scripts/seed.mjs && next build"
   },
   "dependencies": {
     "better-sqlite3": "^11.10.0",
@@ -21,5 +22,8 @@
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
