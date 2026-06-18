@@ -17,13 +17,15 @@ import { seedDatabase, clearTables } from "../lib/seedData.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..");
 
-const url = process.env.TURSO_DATABASE_URL;
+const rawUrl = process.env.TURSO_DATABASE_URL;
 const authToken = process.env.TURSO_AUTH_TOKEN;
 
-if (!url) {
-  console.error("✗ Defina TURSO_DATABASE_URL (e TURSO_AUTH_TOKEN). Veja .env.example.");
+if (!rawUrl || !authToken) {
+  console.error("✗ Defina TURSO_DATABASE_URL E TURSO_AUTH_TOKEN (do MESMO banco). Veja .env.example.");
   process.exit(1);
 }
+// Normaliza esquema (aceita libsql:// e https://).
+const url = /^(libsql|https?):\/\//i.test(rawUrl.trim()) ? rawUrl.trim().replace(/\/+$/, "") : "libsql://" + rawUrl.trim().replace(/\/+$/, "");
 
 const replicaPath = path.join(root, "data", "turso-replica.db");
 fs.mkdirSync(path.dirname(replicaPath), { recursive: true });
