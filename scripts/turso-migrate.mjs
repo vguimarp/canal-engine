@@ -28,11 +28,12 @@ for (const file of [".env.local", ".env"]) {
   }
 }
 
-const rawUrl = process.env.TURSO_DATABASE_URL;
+const OFFICIAL_TURSO_URL = "libsql://canal-engine-vguimarp.aws-us-east-1.turso.io";
+const rawUrl = process.env.TURSO_DATABASE_URL || OFFICIAL_TURSO_URL;
 const authToken = process.env.TURSO_AUTH_TOKEN;
 
-if (!rawUrl || !authToken) {
-  console.error("✗ Defina TURSO_DATABASE_URL E TURSO_AUTH_TOKEN (do MESMO banco). Veja .env.example.");
+if (!authToken) {
+  console.error("✗ Defina TURSO_AUTH_TOKEN (token do banco canal-engine). A URL já usa o banco oficial por padrão. Veja .env.example.");
   process.exit(1);
 }
 // Normaliza esquema (aceita libsql:// e https://).
