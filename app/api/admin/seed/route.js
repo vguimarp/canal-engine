@@ -14,9 +14,22 @@ const OFFICIAL_TURSO_URL = "libsql://canal-engine-vguimarp.aws-us-east-1.turso.i
 //  • Sem token → seed local (demo).
 // Idempotente: só semeia se vazio (use ?force=1 para repor).
 export async function POST(request) {
-  const force = new URL(request.url).searchParams.get("force") === "1";
+  const sp = new URL(request.url).searchParams;
+  const force = sp.get("force") === "1";
   const token = process.env.TURSO_AUTH_TOKEN;
   const url = process.env.TURSO_DATABASE_URL || OFFICIAL_TURSO_URL;
+
+  // Segurança: `force` (apaga e repõe) é destrutivo. Em produção/Turso exige
+  // segredo, para um endpoint público não conseguir zerar dados de ninguém.
+  if (force && token) {
+    const secret = process.env.ADMIN_SECRET;
+    if (!secret || sp.get("secret") !== secret) {
+      return NextResponse.json(
+        { ok: false, error: "force exige ?secret= válido (defina ADMIN_SECRET no ambiente)." },
+        { status: 403 }
+      );
+    }
+  }
 
   // Estado atual.
   let before;
