@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { ChannelSwitcher } from "@/components/channel";
+import { useEffect } from "react";
 
 const NAV = [
   { href: "/", label: "Painel", code: "00" },
@@ -61,7 +62,8 @@ export default function Nav() {
           );
         })}
       </nav>
-      <div className="mt-10 pt-5 border-t border-line text-[10px] text-ink-dim leading-relaxed">
+      <AuthBox />
+      <div className="mt-6 pt-5 border-t border-line text-[10px] text-ink-dim leading-relaxed">
         <button onClick={() => { try { localStorage.removeItem("canal-engine:onboarded"); location.reload(); } catch {} }}
           className="text-amber hover:underline mb-3 block">↻ Rever tutorial</button>
         <span className="text-ok">●</span> Conformidade ativa<br />
@@ -69,5 +71,34 @@ export default function Nav() {
       </div>
     </aside>
     </>
+  );
+}
+
+// Estado de sessão: usuário logado (com sair) ou link para entrar.
+function AuthBox() {
+  const [user, setUser] = useState(undefined); // undefined=carregando, null=deslogado
+  useEffect(() => {
+    fetch("/api/auth/me").then((r) => r.json()).then((d) => setUser(d.user || null)).catch(() => setUser(null));
+  }, []);
+  if (user === undefined) return null;
+  if (user) {
+    return (
+      <div className="mt-8 pt-5 border-t border-line">
+        <div className="text-ink-dim text-[10px] tracking-widest uppercase mb-1">Conta</div>
+        <div className="text-ink text-[12px] truncate">{user.email}</div>
+        <div className="text-ink-dim text-[10px] mb-2 uppercase">plano {user.plan || "free"}</div>
+        <button onClick={async () => { await fetch("/api/auth/logout", { method: "POST" }); location.href = "/login"; }}
+          className="text-[11px] tracking-wider uppercase px-3 py-1.5 border border-line text-ink-dim rounded-md hover:text-ink w-full">
+          Sair
+        </button>
+      </div>
+    );
+  }
+  return (
+    <div className="mt-8 pt-5 border-t border-line">
+      <Link href="/login" className="text-[11px] tracking-wider uppercase px-3 py-1.5 border border-amber text-amber rounded-md hover:bg-amber hover:text-paper transition-colors block text-center">
+        Entrar / Criar conta
+      </Link>
+    </div>
   );
 }

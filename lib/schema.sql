@@ -4,6 +4,17 @@
 -- ============================================================
 
 -- Canais (multicanal desde o início — Tarefa: escalar para 3 canais)
+-- Usuários (FASE 2 — Autenticação). Multi-tenant vem na FASE 3 (user_id em channels).
+CREATE TABLE IF NOT EXISTS users (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  email         TEXT NOT NULL UNIQUE,
+  name          TEXT,
+  password_hash TEXT NOT NULL,
+  plan          TEXT DEFAULT 'free',   -- free | pro | agency (FASE 4)
+  created_at    TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+
 CREATE TABLE IF NOT EXISTS channels (
   id                 INTEGER PRIMARY KEY AUTOINCREMENT,
   name               TEXT NOT NULL,

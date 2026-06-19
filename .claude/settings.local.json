@@ -2,7 +2,13 @@
   "permissions": {
     "allow": [
       "Bash(npx next *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(gh auth *)",
+      "Bash(git fetch *)",
+      "Bash(git rm *)",
+      "Bash(awk '{print \"db local ainda existe:\", $9, $5\"b\"}')",
+      "Bash(perl -0pi -e 's{path\\\\.join\\\\\\(process\\\\.cwd\\\\\\(\\\\\\), \"lib\", \"schema\\\\.sql\"\\\\\\)}{SCHEMA_PATH}g' lib/db.js)",
+      "Bash(node -e \"console.log\\(JSON.stringify\\(require\\('./package.json'\\).scripts,null,2\\)\\)\")"
     ]
   }
 }

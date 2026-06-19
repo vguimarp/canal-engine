@@ -1,5 +1,6 @@
 import "./globals.css";
 import Onboarding from "@/components/onboarding";
+import Providers from "./providers";
 
 export const metadata = {
   title: "Canal Engine — Central de Inteligência",
@@ -10,8 +11,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="pt-BR">
       <body>
-        <Onboarding />
-        {children}
+        <Providers>
+          <Onboarding />
+          {children}
+        </Providers>
       </body>
     </html>
   );
