@@ -26,6 +26,73 @@ CREATE TABLE IF NOT EXISTS workspaces (
 );
 CREATE INDEX IF NOT EXISTS idx_workspaces_owner ON workspaces(owner_user_id);
 
+-- Planos e monetização SaaS (FASE 4). Estrutura pronta para gateways,
+-- sem processar pagamento real nesta etapa.
+CREATE TABLE IF NOT EXISTS plans (
+  id                       INTEGER PRIMARY KEY AUTOINCREMENT,
+  code                     TEXT NOT NULL UNIQUE, -- free | pro | agency
+  name                     TEXT NOT NULL,
+  channel_limit            INTEGER,              -- NULL = ilimitado
+  idea_limit_monthly       INTEGER,              -- NULL = ilimitado
+  execution_limit_monthly  INTEGER,              -- NULL = ilimitado
+  workspace_limit          INTEGER,              -- NULL = ilimitado
+  priority_processing      INTEGER DEFAULT 0,
+  active                   INTEGER DEFAULT 1,
+  created_at               TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_plans_code ON plans(code);
+
+CREATE TABLE IF NOT EXISTS subscriptions (
+  id                       INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id                  INTEGER REFERENCES users(id),
+  workspace_id             INTEGER REFERENCES workspaces(id),
+  plan_code                TEXT NOT NULL DEFAULT 'free',
+  status                   TEXT DEFAULT 'active',
+  provider                 TEXT DEFAULT 'manual',
+  provider_customer_id     TEXT,
+  provider_subscription_id TEXT,
+  current_period_start     TEXT DEFAULT (date('now','start of month')),
+  current_period_end       TEXT DEFAULT (date('now','start of month','+1 month')),
+  created_at               TEXT DEFAULT (datetime('now')),
+  updated_at               TEXT DEFAULT (datetime('now')),
+  UNIQUE(workspace_id)
+);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_user ON subscriptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_workspace ON subscriptions(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_plan ON subscriptions(plan_code);
+
+CREATE TABLE IF NOT EXISTS usage_tracking (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  workspace_id  INTEGER REFERENCES workspaces(id),
+  user_id       INTEGER REFERENCES users(id),
+  metric        TEXT NOT NULL,           -- channels | ideas | executions
+  period        TEXT NOT NULL,           -- YYYY-MM
+  used          INTEGER DEFAULT 0,
+  limit_value   INTEGER,
+  created_at    TEXT DEFAULT (datetime('now')),
+  updated_at    TEXT DEFAULT (datetime('now')),
+  UNIQUE(workspace_id, metric, period)
+);
+CREATE INDEX IF NOT EXISTS idx_usage_workspace_period ON usage_tracking(workspace_id, period);
+CREATE INDEX IF NOT EXISTS idx_usage_user ON usage_tracking(user_id);
+
+CREATE TABLE IF NOT EXISTS billing_events (
+  id             INTEGER PRIMARY KEY AUTOINCREMENT,
+  workspace_id   INTEGER REFERENCES workspaces(id),
+  user_id        INTEGER REFERENCES users(id),
+  provider       TEXT DEFAULT 'manual',  -- stripe | mercado_pago | pix | manual
+  event_type     TEXT NOT NULL,
+  status         TEXT DEFAULT 'pending',
+  plan_code      TEXT,
+  amount_cents   INTEGER,
+  currency       TEXT DEFAULT 'BRL',
+  payload        TEXT,
+  created_at     TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_billing_workspace ON billing_events(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_billing_user ON billing_events(user_id);
+CREATE INDEX IF NOT EXISTS idx_billing_status ON billing_events(status);
+
 CREATE TABLE IF NOT EXISTS channels (
   id                 INTEGER PRIMARY KEY AUTOINCREMENT,
   name               TEXT NOT NULL,

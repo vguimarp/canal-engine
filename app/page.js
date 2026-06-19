@@ -12,20 +12,23 @@ export default function Home() {
   const [data, setData] = useState(null);
   const [learn, setLearn] = useState(null);
   const [execution, setExecution] = useState(null);
+  const [billing, setBilling] = useState(null);
   const [loadError, setLoadError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
 
   const load = async () => {
     setLoadError(false);
-    const [d, m, e] = await Promise.all([
+    const [d, m, e, b] = await Promise.all([
       safeJson(`/api/dashboard?channelId=${channelId}`),
       safeJson(`/api/metrics?channelId=${channelId}`, undefined, { learnings: [] }),
       safeJson("/api/execution/status", undefined, {}),
+      safeJson("/api/billing/status", undefined, null),
     ]);
     if (!d || d.__error) { setLoadError(true); return; }
     setData(d); setLearn(m && !m.__error ? m : { learnings: [] });
     setExecution(e && !e.__error ? e : {});
+    setBilling(b && !b.__error ? b : null);
   };
   useEffect(() => { load(); }, [channelId]);
 
@@ -162,6 +165,8 @@ export default function Home() {
                 </div>
               </Panel>
             )}
+
+            {billing && <BillingPanel billing={billing} />}
 
             <Panel title="Foco automático" action={<Link href="/execucao" className="text-[11px] tracking-wider uppercase text-amber hover:text-ink">Abrir execução</Link>}>
               <div className="grid lg:grid-cols-4 gap-3">
@@ -386,6 +391,90 @@ export default function Home() {
           </>
         )}
       </Shell>
+    </div>
+  );
+}
+
+function BillingPanel({ billing }) {
+  const [upgradeMsg, setUpgradeMsg] = useState("");
+  const usage = billing.usage || {};
+  const plan = billing.plan || {};
+  const askUpgrade = async (planCode) => {
+    setUpgradeMsg("");
+    const resp = await fetch("/api/billing/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ planCode, provider: "stripe" }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    setUpgradeMsg(data.message || data.error || "Pedido registrado.");
+  };
+
+  return (
+    <Panel title="Plano e uso">
+      <div className="grid lg:grid-cols-4 gap-3">
+        <div className="border border-line bg-paper-2 p-4">
+          <div className="text-ink-dim text-[10px] tracking-widest uppercase mb-1">Plano atual</div>
+          <div className="text-3xl text-amber">{billing.subscription?.planName || plan.name || "FREE"}</div>
+          <div className="text-ink-dim text-[11px] mt-1">período {billing.subscription?.period}</div>
+        </div>
+        <UsageBox label="Canais" item={usage.channels} />
+        <UsageBox label="Ideias do mês" item={usage.ideas} />
+        <UsageBox label="Execuções do mês" item={usage.executions} />
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-3 mt-4">
+        <PlanCard
+          title="FREE"
+          text="1 canal, 20 ideias por mês e 5 execuções."
+          active={plan.code === "free"}
+        />
+        <PlanCard
+          title="PRO"
+          text="Até 10 canais, ideias e execuções ilimitadas."
+          active={plan.code === "pro"}
+          onClick={() => askUpgrade("pro")}
+        />
+        <PlanCard
+          title="AGENCY"
+          text="Canais e workspaces ilimitados com prioridade de processamento."
+          active={plan.code === "agency"}
+          onClick={() => askUpgrade("agency")}
+        />
+      </div>
+      {upgradeMsg && <div className="mt-3 text-sm text-amber">{upgradeMsg}</div>}
+    </Panel>
+  );
+}
+
+function UsageBox({ label, item }) {
+  const used = Number(item?.used || 0);
+  const limit = item?.limit == null ? null : Number(item.limit);
+  const pct = limit ? Math.min(100, Math.round((used / limit) * 100)) : 100;
+  return (
+    <div className="border border-line bg-paper p-4">
+      <div className="text-ink-dim text-[10px] tracking-widest uppercase mb-1">{label}</div>
+      <div className="text-2xl text-ink">{used}<span className="text-ink-dim text-sm"> / {limit == null ? "ilimitado" : limit}</span></div>
+      <div className="mt-3"><Bar value={pct} /></div>
+    </div>
+  );
+}
+
+function PlanCard({ title, text, active, onClick }) {
+  return (
+    <div className={`border p-4 ${active ? "border-amber bg-paper-2" : "border-line bg-paper"}`}>
+      <div className="flex justify-between gap-3 items-start">
+        <div>
+          <div className="text-ink text-lg">{title}</div>
+          <div className="text-ink-dim text-[12px] leading-relaxed mt-1">{text}</div>
+        </div>
+        {active && <Tag tone="ok">ativo</Tag>}
+      </div>
+      {!active && onClick && (
+        <button onClick={onClick} className="mt-4 border border-amber-dim px-3 py-2 text-[11px] tracking-wider uppercase text-amber hover:bg-paper-2">
+          Preparar upgrade
+        </button>
+      )}
     </div>
   );
 }

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { planExecution, runExecution } from "@/lib/execution";
 import { currentWorkspaceId } from "@/lib/tenant";
+import { getSession } from "@/lib/session";
+import { checkUsageLimit } from "@/lib/billing";
 
 export const dynamic = "force-dynamic";
 
@@ -20,8 +22,17 @@ export async function GET(request) {
 
 export async function POST(request) {
   const body = await request.json().catch(() => ({}));
+  const workspaceId = currentWorkspaceId();
+  const session = getSession();
+  const limit = checkUsageLimit({
+    workspaceId,
+    userId: session?.uid ?? null,
+    metric: "executions",
+    increment: 1,
+  });
+  if (!limit.allowed) return NextResponse.json({ error: limit.message, billing: limit.status }, { status: 402 });
   try {
-    const result = await runExecution({ ...body, workspaceId: currentWorkspaceId() });
+    const result = await runExecution({ ...body, workspaceId });
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: error.message || "Falha ao executar operação." }, { status: 400 });

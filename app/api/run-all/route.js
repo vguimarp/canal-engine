@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getDb, batchWrite } from "@/lib/db";
 import { researchTrends, generateIdeas, generateKeywords } from "@/lib/skills";
 import { resolveBodyChannel } from "@/lib/tenant";
+import { getSession } from "@/lib/session";
+import { checkUsageLimit } from "@/lib/billing";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -13,6 +15,14 @@ export async function POST(request) {
   const resolved = resolveBodyChannel(body, { required: true });
   if (resolved.error) return NextResponse.json({ error: resolved.error }, { status: resolved.status });
   const channelId = resolved.channelId;
+  const session = getSession();
+  const limit = checkUsageLimit({
+    workspaceId: resolved.workspaceId,
+    userId: session?.uid ?? null,
+    metric: "ideas",
+    increment: 15,
+  });
+  if (!limit.allowed) return NextResponse.json({ error: limit.message, billing: limit.status }, { status: 402 });
   const db = getDb();
   const channel = db.prepare("SELECT niche FROM channels WHERE id=?").get(channelId);
   if (!channel) return NextResponse.json({ error: "Canal não encontrado" }, { status: 404 });

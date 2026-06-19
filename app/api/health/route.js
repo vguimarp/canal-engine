@@ -20,7 +20,7 @@ export async function GET() {
   const mode = env.tursoTokenPresent ? "turso" : "demo";
 
   const TABLES = [
-    "users", "workspaces",
+    "users", "workspaces", "plans", "subscriptions", "usage_tracking", "billing_events",
     "channels", "trends", "ideas", "videos", "social_posts", "keywords",
     "metrics", "thumbnails", "thumb_variants", "seo_packages", "distributions",
     "strategy", "learnings", "logs", "queues", "library_items",
