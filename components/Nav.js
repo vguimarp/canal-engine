@@ -7,6 +7,7 @@ import { useEffect } from "react";
 
 const NAV = [
   { href: "/", label: "Painel", code: "00" },
+  { href: "/profile", label: "Perfil", code: "P" },
   { href: "/canais", label: "Canais", code: "01" },
   { href: "/ideas", label: "Ideias", code: "02" },
   { href: "/producao", label: "Produção", code: "03" },
@@ -19,7 +20,6 @@ const NAV = [
   { href: "/billing", label: "Plano", code: "10" },
   { href: "/settings/ai", label: "IA", code: "11" },
   { href: "/settings/billing", label: "Gateways", code: "12" },
-  { href: "/admin", label: "Admin", code: "13" },
   { href: "/status", label: "Status", code: "14" },
   { href: "/pricing", label: "Preços", code: "15" },
 ];
@@ -27,6 +27,11 @@ const NAV = [
 export default function Nav() {
   const path = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [user, setUser] = useState(undefined);
+  useEffect(() => {
+    fetch("/api/auth/me").then((r) => r.json()).then((d) => setUser(d.user || null)).catch(() => setUser(null));
+  }, []);
+  const nav = user?.role === "admin" ? [...NAV, { href: "/admin", label: "Admin", code: "13" }] : NAV;
   return (
     <>
     {/* Barra superior só no celular */}
@@ -40,7 +45,7 @@ export default function Nav() {
       <nav className="md:hidden fixed top-[52px] left-0 right-0 z-30 bg-paper-2 border-b border-line">
         <div className="px-5 py-3 border-b border-line"><ChannelSwitcher compact /></div>
         <MobileAuth onDone={() => setMobileOpen(false)} />
-        {NAV.map((n) => (
+        {nav.map((n) => (
           <Link key={n.href} href={n.href} onClick={() => setMobileOpen(false)}
             className={`block px-5 py-3 text-sm border-b border-line ${path === n.href ? "text-amber" : "text-ink"}`}>
             {n.label}
@@ -56,7 +61,7 @@ export default function Nav() {
       </div>
       <ChannelSwitcher />
       <nav className="space-y-1">
-        {NAV.map((n) => {
+        {nav.map((n) => {
           const active = path === n.href;
           return (
             <Link key={n.href} href={n.href}

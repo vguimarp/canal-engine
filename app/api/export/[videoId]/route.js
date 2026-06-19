@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { buildVideoExportMarkdown, buildVideoExportPackage } from "@/lib/mediaExport";
-import { videoBelongsToWorkspace } from "@/lib/tenant";
+import { currentUserId, videoBelongsToWorkspace } from "@/lib/tenant";
+import { recordUserEvent } from "@/lib/account";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,7 @@ export async function GET(request, { params }) {
   }
   const pack = buildVideoExportPackage(videoId);
   if (!pack) return NextResponse.json({ error: "Pacote não encontrado." }, { status: 404 });
+  recordUserEvent({ userId: currentUserId(), eventType: "export_package", metadata: { videoId } });
   const format = new URL(request.url).searchParams.get("format") || "json";
   if (format === "md" || format === "markdown") {
     const body = buildVideoExportMarkdown(pack);

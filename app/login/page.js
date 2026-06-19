@@ -32,14 +32,17 @@ export default function Login() {
       <p className="text-ink-dim text-[12px] mt-5 text-center">
         Não tem conta? <Link href="/signup" className="text-amber hover:underline">Criar conta</Link>
       </p>
+      <p className="text-ink-dim text-[12px] mt-2 text-center">
+        <Link href="/forgot-password" className="text-amber hover:underline">Esqueci minha senha</Link>
+      </p>
     </AuthShell>
   );
 }
 
-export function AuthShell({ title, subtitle, children }) {
+export function AuthShell({ title, subtitle, children, wide = false }) {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative z-10">
-      <div className="w-full max-w-sm">
+      <div className={`w-full ${wide ? "max-w-4xl" : "max-w-sm"}`}>
         <div className="text-center mb-6">
           <div className="text-amber text-xs tracking-[0.3em] mb-1">DOSSIÊ</div>
           <div className="serif text-2xl text-ink">Canal Engine</div>

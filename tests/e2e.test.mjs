@@ -6,6 +6,30 @@ import net from "node:net";
 
 let BASE = "";
 
+function signupBody(email) {
+  return {
+    email,
+    name: "Usuário E2E",
+    password: "Senha123",
+    confirmPassword: "Senha123",
+    phone: "11999999999",
+    whatsapp: "11999999999",
+    country: "Brasil",
+    state: "SP",
+    city: "São Paulo",
+    userType: "criador",
+    niche: "IA aplicada",
+    channelSize: "0",
+    mainGoal: "Crescer canal",
+    acquisitionSource: "teste",
+    termsAccepted: true,
+    privacyAccepted: true,
+    emailMarketingConsent: true,
+    whatsappMarketingConsent: false,
+    smsMarketingConsent: false,
+  };
+}
+
 test("E2E comercial: auth, canal, conteúdo, SEO, distribuição e billing", async (t) => {
   if (!fs.existsSync(".next")) t.skip("Execute npm run build antes do E2E.");
   const port = await freePort();
@@ -21,14 +45,28 @@ test("E2E comercial: auth, canal, conteúdo, SEO, distribuição e billing", asy
 
   const jar = new CookieJar();
   const email = `e2e-${Date.now()}@example.com`;
-  let res = await request("/api/auth/signup", { method: "POST", body: { email, name: "E2E", password: "senha123" }, jar });
+  let res = await request("/api/auth/signup", { method: "POST", body: signupBody(email), jar });
   assert.equal(res.status, 201);
   assert.equal(res.body.user.plan, "free");
+
+  res = await request("/api/profile", { jar });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.user.emailMarketingConsent, true);
+
+  res = await request("/api/profile", { method: "PATCH", body: { city: "Campinas", whatsappMarketingConsent: true }, jar });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.user.city, "Campinas");
+
+  res = await request("/api/auth/forgot-password", { method: "POST", body: { email, channel: "email" }, jar });
+  assert.equal(res.status, 200);
+
+  res = await request("/api/admin/summary", { jar });
+  assert.equal(res.status, 403);
 
   res = await request("/api/auth/logout", { method: "POST", jar });
   assert.equal(res.status, 200);
 
-  res = await request("/api/auth/login", { method: "POST", body: { email, password: "senha123" }, jar });
+  res = await request("/api/auth/login", { method: "POST", body: { email, password: "Senha123" }, jar });
   assert.equal(res.status, 200);
 
   res = await request("/api/billing/subscription", {

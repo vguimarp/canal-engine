@@ -10,18 +10,106 @@ CREATE TABLE IF NOT EXISTS users (
   email         TEXT NOT NULL UNIQUE,
   name          TEXT,
   password_hash TEXT NOT NULL,
+  phone         TEXT,
+  whatsapp      TEXT,
+  country       TEXT,
+  state         TEXT,
+  city          TEXT,
+  user_type     TEXT,
+  company_name  TEXT,
+  document      TEXT,
+  website       TEXT,
+  niche         TEXT,
+  channel_size  TEXT,
+  main_goal     TEXT,
+  acquisition_source TEXT,
   plan          TEXT DEFAULT 'free',   -- free | pro | agency (FASE 4)
   role          TEXT DEFAULT 'user',   -- user | admin
+  status        TEXT DEFAULT 'active', -- active | inactive
+  email_marketing_consent INTEGER DEFAULT 0,
+  whatsapp_marketing_consent INTEGER DEFAULT 0,
+  sms_marketing_consent INTEGER DEFAULT 0,
+  terms_accepted_at TEXT,
+  privacy_accepted_at TEXT,
   workspace_id  INTEGER,               -- workspace primária do usuário (FASE 3)
-  created_at    TEXT DEFAULT (datetime('now'))
+  created_at    TEXT DEFAULT (datetime('now')),
+  updated_at    TEXT DEFAULT (datetime('now')),
+  last_login_at TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id     INTEGER REFERENCES users(id),
+  token_hash  TEXT NOT NULL,
+  channel     TEXT DEFAULT 'email',
+  expires_at  TEXT NOT NULL,
+  used_at     TEXT,
+  created_at  TEXT DEFAULT (datetime('now')),
+  ip          TEXT,
+  user_agent  TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_password_reset_user ON password_reset_tokens(user_id, used_at);
+CREATE INDEX IF NOT EXISTS idx_password_reset_hash ON password_reset_tokens(token_hash);
+
+CREATE TABLE IF NOT EXISTS user_consents (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id     INTEGER REFERENCES users(id),
+  type        TEXT NOT NULL,
+  accepted    INTEGER DEFAULT 0,
+  source      TEXT,
+  created_at  TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_user_consents_user ON user_consents(user_id, type);
+
+CREATE TABLE IF NOT EXISTS admin_notes (
+  id             INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id        INTEGER REFERENCES users(id),
+  admin_user_id  INTEGER REFERENCES users(id),
+  lead_status    TEXT,
+  note           TEXT,
+  created_at     TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_admin_notes_user ON admin_notes(user_id, created_at);
+
+CREATE TABLE IF NOT EXISTS user_events (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id     INTEGER REFERENCES users(id),
+  event_type  TEXT NOT NULL,
+  metadata    TEXT,
+  ip          TEXT,
+  user_agent  TEXT,
+  created_at  TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_user_events_user ON user_events(user_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_user_events_type ON user_events(event_type, created_at);
+
+CREATE TABLE IF NOT EXISTS marketing_contacts (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id     INTEGER REFERENCES users(id),
+  channel     TEXT NOT NULL,
+  value       TEXT,
+  consent     INTEGER DEFAULT 0,
+  created_at  TEXT DEFAULT (datetime('now')),
+  updated_at  TEXT DEFAULT (datetime('now')),
+  UNIQUE(user_id, channel)
+);
+
+CREATE TABLE IF NOT EXISTS delete_account_requests (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id     INTEGER REFERENCES users(id),
+  reason      TEXT,
+  status      TEXT DEFAULT 'pending',
+  created_at  TEXT DEFAULT (datetime('now')),
+  resolved_at TEXT
+);
 
 -- Workspaces (FASE 3 — Multiusuário). Cada usuário tem a sua; existe 1 demo.
 CREATE TABLE IF NOT EXISTS workspaces (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   name          TEXT NOT NULL,
   owner_user_id INTEGER REFERENCES users(id),   -- NULL = sistema (demo)
+  owner_id      INTEGER REFERENCES users(id),   -- alias compatível p/ admin
   is_demo       INTEGER DEFAULT 0,
   created_at    TEXT DEFAULT (datetime('now'))
 );
