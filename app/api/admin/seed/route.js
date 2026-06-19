@@ -1,51 +1,64 @@
 import { NextResponse } from "next/server";
+import path from "path";
 import { getDb, syncDb } from "@/lib/db";
 import { seedDatabase } from "@/lib/seedData";
+import { seedTurso } from "@/lib/tursoSeed";
 
 export const dynamic = "force-dynamic";
-// Mais tempo para popular o Turso pela rede sem estourar (Hobby: até 60s).
 export const maxDuration = 60;
 
-// Popula o banco em uso (Turso, se houver token) — server-side, onde as
-// variáveis existem. Idempotente: só semeia se estiver vazio (use ?force=1
-// para forçar). Não expõe segredos.
+const OFFICIAL_TURSO_URL = "libsql://canal-engine-vguimarp.aws-us-east-1.turso.io";
+
+// Popula o banco em uso — server-side, onde as variáveis existem.
+//  • Com token → bulk-load rápido no Turso via @libsql/client.batch().
+//  • Sem token → seed local (demo).
+// Idempotente: só semeia se vazio (use ?force=1 para repor).
 export async function POST(request) {
   const force = new URL(request.url).searchParams.get("force") === "1";
-  let db;
-  try { db = getDb(); }
+  const token = process.env.TURSO_AUTH_TOKEN;
+  const url = process.env.TURSO_DATABASE_URL || OFFICIAL_TURSO_URL;
+
+  // Estado atual.
+  let before;
+  try { before = getDb().prepare("SELECT COUNT(*) c FROM channels").get().c; }
   catch (e) { return NextResponse.json({ ok: false, error: `db: ${e?.message || e}` }, { status: 500 }); }
 
-  const before = db.prepare("SELECT COUNT(*) c FROM channels").get().c;
   if (before > 0 && !force) {
     return NextResponse.json({ ok: true, seeded: false, reason: "já populado", channels: before });
   }
 
   try {
+    if (token) {
+      // Caminho Turso (rápido, em lotes).
+      const schemaPath = path.join(process.cwd(), "lib", "schema.sql");
+      const res = await seedTurso({ url, authToken: token, schemaPath, force });
+      // Re-sincroniza a réplica local desta instância para refletir já.
+      syncDb();
+      const after = countAfter();
+      return NextResponse.json({ ok: true, seeded: true, mode: "turso", inserted: res.statements, after }, { status: 201 });
+    }
+    // Caminho local/demo (síncrono).
+    const db = getDb();
     db.transaction(() => {
-      if (force) {
-        // Limpa antes de repor (ordem segura: filhas primeiro via DELETE em todas).
-        for (const t of ["seo_packages","thumb_variants","distributions","social_posts","metrics","thumbnails","keywords","queues","logs","library_items","strategy","videos","ideas","trends","channels"]) {
-          try { db.exec(`DELETE FROM ${t}`); } catch {}
-        }
-      }
+      if (force) for (const t of ["seo_packages","thumb_variants","distributions","social_posts","metrics","thumbnails","keywords","queues","logs","library_items","strategy","videos","ideas","trends","channels"]) { try { db.exec(`DELETE FROM ${t}`); } catch {} }
       seedDatabase(db);
     })();
-    syncDb(); // propaga ao Turso
+    return NextResponse.json({ ok: true, seeded: true, mode: "demo", after: countAfter() }, { status: 201 });
   } catch (e) {
     return NextResponse.json({ ok: false, error: `seed: ${e?.message || e}` }, { status: 500 });
   }
-
-  const after = {
-    channels: db.prepare("SELECT COUNT(*) c FROM channels").get().c,
-    ideas: db.prepare("SELECT COUNT(*) c FROM ideas").get().c,
-    videos: db.prepare("SELECT COUNT(*) c FROM videos WHERE format='long'").get().c,
-    keywords: db.prepare("SELECT COUNT(*) c FROM keywords").get().c,
-    seo_packages: db.prepare("SELECT COUNT(*) c FROM seo_packages").get().c,
-  };
-  return NextResponse.json({ ok: true, seeded: true, after }, { status: 201 });
 }
 
-// GET amigável: informa como usar.
+function countAfter() {
+  const db = getDb();
+  try { syncDb(); } catch {}
+  const c = (t, w = "") => { try { return db.prepare(`SELECT COUNT(*) c FROM ${t} ${w}`).get().c; } catch { return -1; } };
+  return {
+    channels: c("channels"), ideas: c("ideas"), videos: c("videos", "WHERE format='long'"),
+    keywords: c("keywords"), seo_packages: c("seo_packages"),
+  };
+}
+
 export async function GET() {
-  return NextResponse.json({ usage: "POST /api/admin/seed (ou ?force=1 para repor). Popula o banco se vazio." });
+  return NextResponse.json({ usage: "POST /api/admin/seed (ou ?force=1). Com token popula o Turso em lotes; sem token, modo demo." });
 }
