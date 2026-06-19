@@ -18,7 +18,7 @@ export default function LandingPage() {
               Uma central SaaS para descobrir ideias, produzir roteiros, gerar thumbnails locais, organizar SEO, exportar pacotes e operar canais com foco em crescimento.
             </p>
             <div className="flex flex-wrap gap-3 mt-8">
-              <Link href="/signup" className="bg-amber text-paper px-5 py-3 rounded-md text-sm font-bold uppercase tracking-wide">Criar conta grátis</Link>
+              <Link href="/signup" className="bg-amber text-paper px-5 py-3 rounded-md text-sm font-bold uppercase tracking-wide">Começar gratuitamente</Link>
               <Link href="/pricing" className="border border-line px-5 py-3 rounded-md text-sm uppercase tracking-wide text-ink-dim">Ver planos</Link>
             </div>
           </div>

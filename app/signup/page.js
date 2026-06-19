@@ -27,11 +27,11 @@ export default function Signup() {
     const data = await r.json().catch(() => ({}));
     setBusy(false);
     if (!r.ok) { setError(data.error || "Não foi possível criar a conta."); return; }
-    router.push("/completar-perfil"); router.refresh();
+    router.push("/onboarding"); router.refresh();
   };
 
   return (
-    <AuthShell title="Criar conta grátis" subtitle="Leva 30 segundos. Complete o resto do perfil depois.">
+    <AuthShell title="Começar gratuitamente" subtitle="Leva 30 segundos. Complete o resto do perfil depois.">
       <form onSubmit={submit} className="space-y-3">
         <Field label="Nome" type="text" value={form.name} onChange={(v) => set("name", v)} placeholder="Seu nome" />
         <Field label="E-mail" type="email" value={form.email} onChange={(v) => set("email", v)} placeholder="voce@email.com" />
@@ -42,7 +42,7 @@ export default function Signup() {
         </Check>
         {error && <div className="text-alert text-[12px]">{error}</div>}
         <button disabled={busy} className="w-full bg-amber text-paper text-sm font-bold uppercase tracking-wide py-2.5 rounded-md hover:bg-ink transition-colors disabled:opacity-50">
-          {busy ? "Criando..." : "Criar conta grátis"}
+          {busy ? "Criando..." : "Começar gratuitamente"}
         </button>
       </form>
       <p className="text-ink-dim text-[12px] mt-5 text-center">
