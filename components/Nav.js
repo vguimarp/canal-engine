@@ -94,10 +94,21 @@ function AuthBox() {
   }, []);
   if (user === undefined) return null;
   if (user) {
+    const initials = (user.name || user.email || "U").split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
     return (
       <div className="mt-8 pt-5 border-t border-line">
         <div className="text-ink-dim text-[10px] tracking-widest uppercase mb-1">Conta</div>
-        <div className="text-ink text-[12px] truncate">{user.email}</div>
+        <div className="flex items-center gap-2 mb-2">
+          {user.avatarUrl ? (
+            <img src={user.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover border border-line" />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-amber text-paper flex items-center justify-center text-[11px] font-bold">{initials}</div>
+          )}
+          <div className="min-w-0">
+            <div className="text-ink text-[12px] truncate">{user.name || "Usuário"}</div>
+            <div className="text-ink-dim text-[10px] truncate">{user.email}</div>
+          </div>
+        </div>
         <div className="text-ink-dim text-[10px] mb-2 uppercase">plano {user.plan || "free"}</div>
         <button onClick={async () => { await fetch("/api/auth/logout", { method: "POST" }); location.href = "/login"; }}
           className="text-[11px] tracking-wider uppercase px-3 py-1.5 border border-line text-ink-dim rounded-md hover:text-ink w-full">
@@ -125,9 +136,16 @@ function MobileAuth({ onDone }) {
   }, []);
   if (user === undefined) return null;
   if (user) {
+    const initials = (user.name || user.email || "U").split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
     return (
       <div className="px-5 py-3 border-b border-line">
-        <div className="text-ink text-xs truncate">{user.email}</div>
+        <div className="flex items-center gap-2">
+          {user.avatarUrl ? <img src={user.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover border border-line" /> : <div className="w-8 h-8 rounded-full bg-amber text-paper flex items-center justify-center text-[11px] font-bold">{initials}</div>}
+          <div className="min-w-0">
+            <div className="text-ink text-xs truncate">{user.name || "Usuário"}</div>
+            <div className="text-ink-dim text-[10px] truncate">{user.email}</div>
+          </div>
+        </div>
         <button onClick={async () => { await fetch("/api/auth/logout", { method: "POST" }); location.href = "/login"; }}
           className="mt-2 text-[11px] tracking-wider uppercase px-3 py-1.5 border border-line text-ink-dim rounded-md">
           Sair

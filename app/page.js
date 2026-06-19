@@ -13,6 +13,7 @@ export default function Home() {
   const [learn, setLearn] = useState(null);
   const [execution, setExecution] = useState(null);
   const [billing, setBilling] = useState(null);
+  const [activity, setActivity] = useState(null);
   const [system, setSystem] = useState(null);
   const [admin, setAdmin] = useState(null);
   const [loadError, setLoadError] = useState(false);
@@ -21,18 +22,20 @@ export default function Home() {
 
   const load = async () => {
     setLoadError(false);
-    const [d, m, e, b, s, a] = await Promise.all([
+    const [d, m, e, b, s, a, act] = await Promise.all([
       safeJson(`/api/dashboard?channelId=${channelId}`),
       safeJson(`/api/metrics?channelId=${channelId}`, undefined, { learnings: [] }),
       safeJson("/api/execution/status", undefined, {}),
       safeJson("/api/billing/status", undefined, null),
       safeJson("/api/monitoring/health", undefined, null),
       safeJson("/api/admin/overview", undefined, null),
+      safeJson("/api/profile/activity", undefined, null),
     ]);
     if (!d || d.__error) { setLoadError(true); return; }
     setData(d); setLearn(m && !m.__error ? m : { learnings: [] });
     setExecution(e && !e.__error ? e : {});
     setBilling(b && !b.__error ? b : null);
+    setActivity(act && !act.__error ? act : null);
     setSystem(s && !s.__error ? s : null);
     setAdmin(a && !a.__error ? a : null);
   };
@@ -173,6 +176,22 @@ export default function Home() {
             )}
 
             {billing && <BillingPanel billing={billing} />}
+
+            {activity && (
+              <Panel title="Sua atividade">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                  <Stat label="Eventos recentes" value={activity.events?.length || 0} accent />
+                  <Stat label="Gerações IA" value={activity.generations?.length || 0} />
+                  <Stat label="Thumbnails" value={activity.thumbnails?.length || 0} />
+                  <Stat label="Exportações" value={activity.exports?.length || 0} />
+                </div>
+                <div className="grid lg:grid-cols-3 gap-4">
+                  <MiniHistory title="Últimas ações" rows={(activity.events || []).slice(0, 5)} pick={(r) => r.event_type} />
+                  <MiniHistory title="Gerações" rows={(activity.generations || []).slice(0, 5)} pick={(r) => `${r.task} · ${r.status}`} />
+                  <MiniHistory title="Thumbnails" rows={(activity.thumbnails || []).slice(0, 5)} pick={(r) => r.video_title || r.title} />
+                </div>
+              </Panel>
+            )}
 
             {system && (
               <Panel title="Operação SaaS">
@@ -543,6 +562,24 @@ function SmallMetric({ label, value }) {
     <div className="border border-line bg-paper p-3">
       <div className="text-ink-dim text-[9px] tracking-widest uppercase mb-1">{label}</div>
       <div className="text-ink text-sm truncate">{value}</div>
+    </div>
+  );
+}
+
+function MiniHistory({ title, rows = [], pick }) {
+  return (
+    <div className="border border-line bg-paper p-4">
+      <div className="text-ink-dim text-[10px] tracking-widest uppercase mb-3">{title}</div>
+      {!rows.length ? <div className="text-ink-dim text-sm">Nada registrado ainda.</div> : (
+        <div className="space-y-2">
+          {rows.map((r, i) => (
+            <div key={r.id || `${title}-${i}`} className="text-sm">
+              <div className="text-ink truncate">{pick(r)}</div>
+              <div className="text-ink-dim text-[10px]">{r.created_at || r.createdAt || ""}</div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
