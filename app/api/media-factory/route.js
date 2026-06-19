@@ -20,5 +20,16 @@ export async function POST(request) {
   const result = generateMediaFactoryForVideo(channelId, videoId);
   if (!result) return NextResponse.json({ error: "Vídeo não encontrado neste canal" }, { status: 404 });
   if (result.error) return NextResponse.json(result, { status: 409 });
-  return NextResponse.json(result, { status: 201 });
+  const thumbnail = (result.thumbnails || []).find((item) => item.file_name) || result.thumbnails?.[0] || null;
+  return NextResponse.json({
+    ...result,
+    preview: thumbnail ? {
+      id: thumbnail.id,
+      url: `/api/media/${thumbnail.id}`,
+      downloadUrl: `/api/media/${thumbnail.id}?download=1`,
+      fileName: thumbnail.file_name,
+      filePath: thumbnail.file_path,
+    } : null,
+    exportUrl: `/api/export/${videoId}`,
+  }, { status: 201 });
 }

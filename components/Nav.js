@@ -39,6 +39,7 @@ export default function Nav() {
     {mobileOpen && (
       <nav className="md:hidden fixed top-[52px] left-0 right-0 z-30 bg-paper-2 border-b border-line">
         <div className="px-5 py-3 border-b border-line"><ChannelSwitcher compact /></div>
+        <MobileAuth onDone={() => setMobileOpen(false)} />
         {NAV.map((n) => (
           <Link key={n.href} href={n.href} onClick={() => setMobileOpen(false)}
             className={`block px-5 py-3 text-sm border-b border-line ${path === n.href ? "text-amber" : "text-ink"}`}>
@@ -103,7 +104,39 @@ function AuthBox() {
   return (
     <div className="mt-8 pt-5 border-t border-line">
       <Link href="/login" className="text-[11px] tracking-wider uppercase px-3 py-1.5 border border-amber text-amber rounded-md hover:bg-amber hover:text-paper transition-colors block text-center">
-        Entrar / Criar conta
+        Entrar
+      </Link>
+      <Link href="/signup" className="mt-2 text-[11px] tracking-wider uppercase px-3 py-1.5 border border-line text-ink-dim rounded-md hover:text-ink transition-colors block text-center">
+        Criar conta
+      </Link>
+    </div>
+  );
+}
+
+function MobileAuth({ onDone }) {
+  const [user, setUser] = useState(undefined);
+  useEffect(() => {
+    fetch("/api/auth/me").then((r) => r.json()).then((d) => setUser(d.user || null)).catch(() => setUser(null));
+  }, []);
+  if (user === undefined) return null;
+  if (user) {
+    return (
+      <div className="px-5 py-3 border-b border-line">
+        <div className="text-ink text-xs truncate">{user.email}</div>
+        <button onClick={async () => { await fetch("/api/auth/logout", { method: "POST" }); location.href = "/login"; }}
+          className="mt-2 text-[11px] tracking-wider uppercase px-3 py-1.5 border border-line text-ink-dim rounded-md">
+          Sair
+        </button>
+      </div>
+    );
+  }
+  return (
+    <div className="px-5 py-3 border-b border-line grid grid-cols-2 gap-2">
+      <Link href="/login" onClick={onDone} className="text-[11px] tracking-wider uppercase px-3 py-2 border border-amber text-amber rounded-md text-center">
+        Entrar
+      </Link>
+      <Link href="/signup" onClick={onDone} className="text-[11px] tracking-wider uppercase px-3 py-2 border border-line text-ink rounded-md text-center">
+        Criar conta
       </Link>
     </div>
   );

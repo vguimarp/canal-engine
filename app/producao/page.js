@@ -12,6 +12,7 @@ export default function Producao() {
   const [open, setOpen] = useState(null);
   const [acting, setActing] = useState(null);
   const [note, setNote] = useState("");
+  const [previews, setPreviews] = useState({});
 
   const load = () => {
     fetch(`/api/videos?channelId=${channelId}`).then((r) => r.json()).then(setVideos);
@@ -34,9 +35,11 @@ export default function Producao() {
       body: JSON.stringify({ videoId, channelId }),
     });
     const data = await r.json().catch(() => ({}));
+    if (r.ok && data.preview) setPreviews((p) => ({ ...p, [videoId]: data.preview }));
+    load();
     setActing(null);
     setNote(r.ok
-      ? `✓ Mídia IA preparada: ${data.images?.length || 0} imagens, ${data.thumbnails?.length || 0} thumbnails e ${data.shorts?.length || 0} cortes.`
+      ? `✓ Mídia IA preparada. Arquivo: ${data.preview?.filePath || data.preview?.fileName || "thumbnail salva"}.`
       : `✗ ${data.error || "Falha ao preparar mídia IA."}`);
   };
 
@@ -100,6 +103,26 @@ export default function Producao() {
                     className="text-[11px] tracking-wider uppercase px-3 py-1.5 border border-amber text-amber hover:bg-amber hover:text-paper transition-colors disabled:opacity-40">
                     {acting === `media-${v.id}` ? "Preparando…" : "Gerar mídia IA"}
                   </button>
+                  <a href={`/api/export/${v.id}?format=md`}
+                    className="ml-2 inline-block text-[11px] tracking-wider uppercase px-3 py-1.5 border border-line text-ink-dim hover:text-ink transition-colors">
+                    Exportar pacote
+                  </a>
+                  {(previews[v.id] || v.media_preview_id) && (
+                    <div className="grid md:grid-cols-[320px_1fr] gap-4 items-start">
+                      <img src={previews[v.id]?.url || `/api/media/${v.media_preview_id}`} alt={`Thumbnail de ${v.title}`}
+                        className="w-full max-w-[320px] aspect-video object-cover border border-line bg-paper" />
+                      <div>
+                        <div className="text-amber text-[10px] tracking-widest uppercase mb-2">Thumbnail/Capa gerada</div>
+                        <p className="text-ink-dim text-[12px] leading-relaxed mb-3">
+                          Capa local gerada sem depender de OpenAI, salva como arquivo real e associada a este vídeo.
+                        </p>
+                        <a href={previews[v.id]?.downloadUrl || `/api/media/${v.media_preview_id}?download=1`}
+                          className="inline-block text-[11px] tracking-wider uppercase px-3 py-1.5 border border-amber text-amber hover:bg-amber hover:text-paper transition-colors">
+                          Baixar thumbnail
+                        </a>
+                      </div>
+                    </div>
+                  )}
                   <Field label="Descrição"><pre className="whitespace-pre-wrap text-ink-dim text-[12px] leading-relaxed">{v.description}</pre></Field>
                   <Field label="Tags">
                     <div className="flex flex-wrap gap-1">

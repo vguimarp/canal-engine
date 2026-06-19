@@ -69,6 +69,21 @@ test("E2E comercial: auth, canal, conteúdo, SEO, distribuição e billing", asy
   assert.equal(res.status, 202);
   assert.equal(res.body.checkoutReady, false);
 
+  res = await request("/api/media-factory", { method: "POST", body: { videoId, channelId }, jar });
+  assert.equal(res.status, 201);
+  assert.ok(res.body.preview?.id);
+  assert.match(res.body.preview.fileName, /\.png$/);
+
+  res = await raw(`/api/media/${res.body.preview.id}?download=1`, { jar });
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get("content-type"), "image/png");
+  const png = Buffer.from(await res.arrayBuffer());
+  assert.equal(png.subarray(1, 4).toString("utf8"), "PNG");
+
+  res = await raw(`/api/export/${videoId}?format=md`, { jar });
+  assert.equal(res.status, 200);
+  assert.match(await res.text(), /Checklist de publicacao/);
+
   res = await request("/api/billing/subscription", { method: "PATCH", body: { planCode: "free" }, jar });
   assert.equal(res.status, 200);
 
@@ -100,16 +115,21 @@ function freePort() {
 }
 
 async function request(path, { method = "GET", body, headers = {}, jar } = {}) {
+  const res = await raw(path, { method, body, headers, jar });
+  const text = await res.text();
+  let parsed = null;
+  try { parsed = text ? JSON.parse(text) : null; } catch { parsed = text; }
+  return { status: res.status, body: parsed };
+}
+
+async function raw(path, { method = "GET", body, headers = {}, jar } = {}) {
   const res = await fetch(`${BASE}${path}`, {
     method,
     headers: { "Content-Type": "application/json", Cookie: jar?.header() || "", ...headers },
     body: body ? JSON.stringify(body) : undefined,
   });
   jar?.store(res.headers.get("set-cookie"));
-  const text = await res.text();
-  let parsed = null;
-  try { parsed = text ? JSON.parse(text) : null; } catch { parsed = text; }
-  return { status: res.status, body: parsed };
+  return res;
 }
 
 class CookieJar {

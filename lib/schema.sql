@@ -392,6 +392,10 @@ CREATE TABLE IF NOT EXISTS media_assets (
   platform     TEXT,
   title        TEXT,
   prompt       TEXT,
+  file_name    TEXT,
+  file_path    TEXT,
+  asset_mime   TEXT,
+  asset_content TEXT,
   metadata     TEXT,                     -- JSON com estilo, emoção, proporção, duração, etc.
   status       TEXT DEFAULT 'prepared',  -- prepared|render_queue|rendered|review|blocked
   risk_level   TEXT DEFAULT 'seguro',    -- seguro|revisar|alto risco
