@@ -16,6 +16,7 @@ const NAV = [
   { href: "/biblioteca", label: "Biblioteca", code: "07" },
   { href: "/estrategia", label: "Estratégia", code: "08" },
   { href: "/execucao", label: "Execução", code: "09" },
+  { href: "/billing", label: "Plano", code: "10" },
 ];
 
 export default function Nav() {

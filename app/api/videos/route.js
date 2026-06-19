@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { getVideos, getIdeaById, produceVideoFromIdea } from "@/lib/queries";
-import { generatePackage, generateThumbnail, generateDerivatives, buildSeoPackage,
+import { generateThumbnail, generateDerivatives,
   generateThumbnailSet, generateDistribution } from "@/lib/skills";
-import { ideaBelongsToWorkspace, resolveBodyChannel, resolveChannelId } from "@/lib/tenant";
+import { AIProvider } from "@/lib/aiProvider";
+import { currentUserId, ideaBelongsToWorkspace, resolveBodyChannel, resolveChannelId } from "@/lib/tenant";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -38,10 +39,11 @@ export async function POST(request) {
     .get(ideaId);
   if (exists) return NextResponse.json({ error: "Esta ideia já foi produzida" }, { status: 409 });
 
-  const pkg = generatePackage(idea);
+  const ai = new AIProvider({ workspaceId: resolved.workspaceId, userId: currentUserId(), channelId });
+  const pkg = await ai.generateScript(idea);
   const thumb = generateThumbnail({ ...idea, title: pkg.title });
   const derivatives = generateDerivatives({ ...idea, title: pkg.title });
-  const seo = buildSeoPackage(idea, pkg);                       // SEO automático
+  const seo = await ai.generateSEO(idea, pkg);                   // SEO automático
   const thumbSet = generateThumbnailSet({ ...idea, title: pkg.title }); // 3 variações
   const distItems = generateDistribution({ ...idea, title: pkg.title }, seo); // multiplataforma
 

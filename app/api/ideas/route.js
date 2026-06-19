@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { getIdeas, setIdeaStatus, getProducibleIdeas } from "@/lib/queries";
-import { generateIdeas } from "@/lib/skills";
-import { ideaBelongsToWorkspace, resolveBodyChannel, resolveChannelId } from "@/lib/tenant";
+import { AIProvider } from "@/lib/aiProvider";
+import { currentUserId, ideaBelongsToWorkspace, resolveBodyChannel, resolveChannelId } from "@/lib/tenant";
 import { getSession } from "@/lib/session";
 import { checkUsageLimit } from "@/lib/billing";
 
@@ -43,7 +43,8 @@ export async function POST(request) {
     .all(channelId).map((r) => r.topic);
   if (!topics.length) return NextResponse.json({ error: "Sem tendências. Gere tendências primeiro." }, { status: 400 });
 
-  const ideas = generateIdeas(channel.niche, topics, { longCount, shortCount });
+  const ai = new AIProvider({ workspaceId: resolved.workspaceId, userId: currentUserId(), channelId });
+  const ideas = await ai.generateIdeas(channel.niche, topics, { longCount, shortCount });
   const ins = db.prepare(`INSERT INTO ideas
     (channel_id, format, topic, angle, originality, views_potential, score, status)
     VALUES (?,?,?,?,?,?,?,?)`);

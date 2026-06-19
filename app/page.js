@@ -13,22 +13,25 @@ export default function Home() {
   const [learn, setLearn] = useState(null);
   const [execution, setExecution] = useState(null);
   const [billing, setBilling] = useState(null);
+  const [system, setSystem] = useState(null);
   const [loadError, setLoadError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
 
   const load = async () => {
     setLoadError(false);
-    const [d, m, e, b] = await Promise.all([
+    const [d, m, e, b, s] = await Promise.all([
       safeJson(`/api/dashboard?channelId=${channelId}`),
       safeJson(`/api/metrics?channelId=${channelId}`, undefined, { learnings: [] }),
       safeJson("/api/execution/status", undefined, {}),
       safeJson("/api/billing/status", undefined, null),
+      safeJson("/api/monitoring/health", undefined, null),
     ]);
     if (!d || d.__error) { setLoadError(true); return; }
     setData(d); setLearn(m && !m.__error ? m : { learnings: [] });
     setExecution(e && !e.__error ? e : {});
     setBilling(b && !b.__error ? b : null);
+    setSystem(s && !s.__error ? s : null);
   };
   useEffect(() => { load(); }, [channelId]);
 
@@ -167,6 +170,17 @@ export default function Home() {
             )}
 
             {billing && <BillingPanel billing={billing} />}
+
+            {system && (
+              <Panel title="Operação SaaS">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  <Stat label="IA ativa" value={system.ai?.active || "local"} sub="provider atual" accent />
+                  <Stat label="Chamadas IA 24h" value={system.aiCalls24h ?? 0} />
+                  <Stat label="Eventos billing 24h" value={system.billingEvents24h ?? 0} />
+                  <Stat label="Erros 24h" value={system.recentErrors ?? 0} sub={system.sentryConfigured ? "Sentry ativo" : "Sentry pendente"} />
+                </div>
+              </Panel>
+            )}
 
             <Panel title="Foco automático" action={<Link href="/execucao" className="text-[11px] tracking-wider uppercase text-amber hover:text-ink">Abrir execução</Link>}>
               <div className="grid lg:grid-cols-4 gap-3">

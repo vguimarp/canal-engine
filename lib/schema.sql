@@ -93,6 +93,85 @@ CREATE INDEX IF NOT EXISTS idx_billing_workspace ON billing_events(workspace_id)
 CREATE INDEX IF NOT EXISTS idx_billing_user ON billing_events(user_id);
 CREATE INDEX IF NOT EXISTS idx_billing_status ON billing_events(status);
 
+CREATE TABLE IF NOT EXISTS billing_prices (
+  id                INTEGER PRIMARY KEY AUTOINCREMENT,
+  plan_code         TEXT NOT NULL,
+  interval          TEXT NOT NULL,       -- monthly | annual
+  provider          TEXT NOT NULL,       -- stripe | mercado_pago | pix
+  provider_price_id TEXT,
+  amount_cents      INTEGER DEFAULT 0,
+  currency          TEXT DEFAULT 'BRL',
+  active            INTEGER DEFAULT 1,
+  created_at        TEXT DEFAULT (datetime('now')),
+  UNIQUE(plan_code, interval, provider)
+);
+CREATE INDEX IF NOT EXISTS idx_billing_prices_plan ON billing_prices(plan_code, interval);
+
+CREATE TABLE IF NOT EXISTS invoices (
+  id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+  workspace_id        INTEGER REFERENCES workspaces(id),
+  user_id             INTEGER REFERENCES users(id),
+  subscription_id     INTEGER REFERENCES subscriptions(id),
+  provider            TEXT NOT NULL,
+  provider_invoice_id TEXT,
+  plan_code           TEXT,
+  interval            TEXT,
+  status              TEXT DEFAULT 'open',
+  amount_cents        INTEGER DEFAULT 0,
+  currency            TEXT DEFAULT 'BRL',
+  hosted_url          TEXT,
+  created_at          TEXT DEFAULT (datetime('now')),
+  paid_at             TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_invoices_workspace ON invoices(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_user ON invoices(user_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status);
+
+CREATE TABLE IF NOT EXISTS provider_webhooks (
+  id             INTEGER PRIMARY KEY AUTOINCREMENT,
+  provider       TEXT NOT NULL,
+  event_id       TEXT,
+  event_type     TEXT,
+  status         TEXT DEFAULT 'received',
+  payload        TEXT,
+  error          TEXT,
+  created_at     TEXT DEFAULT (datetime('now')),
+  processed_at   TEXT,
+  UNIQUE(provider, event_id)
+);
+CREATE INDEX IF NOT EXISTS idx_webhooks_provider ON provider_webhooks(provider, status);
+
+CREATE TABLE IF NOT EXISTS ai_generations (
+  id             INTEGER PRIMARY KEY AUTOINCREMENT,
+  workspace_id   INTEGER REFERENCES workspaces(id),
+  user_id        INTEGER REFERENCES users(id),
+  channel_id     INTEGER REFERENCES channels(id),
+  provider       TEXT NOT NULL,
+  task           TEXT NOT NULL,
+  prompt         TEXT,
+  result_json    TEXT,
+  tokens_in      INTEGER DEFAULT 0,
+  tokens_out     INTEGER DEFAULT 0,
+  status         TEXT DEFAULT 'completed',
+  error          TEXT,
+  created_at     TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_ai_workspace ON ai_generations(workspace_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_ai_channel ON ai_generations(channel_id, task);
+
+CREATE TABLE IF NOT EXISTS system_events (
+  id             INTEGER PRIMARY KEY AUTOINCREMENT,
+  workspace_id   INTEGER REFERENCES workspaces(id),
+  user_id        INTEGER REFERENCES users(id),
+  level          TEXT DEFAULT 'info',
+  source         TEXT NOT NULL,
+  message        TEXT NOT NULL,
+  context_json   TEXT,
+  created_at     TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_system_events_source ON system_events(source, level);
+CREATE INDEX IF NOT EXISTS idx_system_events_workspace ON system_events(workspace_id, created_at);
+
 CREATE TABLE IF NOT EXISTS channels (
   id                 INTEGER PRIMARY KEY AUTOINCREMENT,
   name               TEXT NOT NULL,

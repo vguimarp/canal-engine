@@ -21,6 +21,7 @@ export async function GET() {
 
   const TABLES = [
     "users", "workspaces", "plans", "subscriptions", "usage_tracking", "billing_events",
+    "billing_prices", "invoices", "provider_webhooks", "ai_generations", "system_events",
     "channels", "trends", "ideas", "videos", "social_posts", "keywords",
     "metrics", "thumbnails", "thumb_variants", "seo_packages", "distributions",
     "strategy", "learnings", "logs", "queues", "library_items",

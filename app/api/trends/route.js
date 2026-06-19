@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-import { researchTrends } from "@/lib/skills";
-import { resolveBodyChannel, resolveChannelId } from "@/lib/tenant";
+import { AIProvider } from "@/lib/aiProvider";
+import { currentUserId, resolveBodyChannel, resolveChannelId } from "@/lib/tenant";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -24,7 +24,8 @@ export async function POST(request) {
   const channel = db.prepare("SELECT niche FROM channels WHERE id=?").get(channelId);
   if (!channel) return NextResponse.json({ error: "Canal não encontrado" }, { status: 404 });
 
-  const trends = researchTrends(channel.niche, count);
+  const ai = new AIProvider({ workspaceId: resolved.workspaceId, userId: currentUserId(), channelId });
+  const trends = await ai.generateTrends(channel.niche, count);
   const ins = db.prepare(`INSERT INTO trends
     (channel_id, topic, source, views_potential, retention_pot, production_ease, monetization, score)
     VALUES (?,?,?,?,?,?,?,?)`);
