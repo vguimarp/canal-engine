@@ -13,7 +13,7 @@ export default function Login() {
   const submit = async (e) => {
     e.preventDefault();
     setBusy(true); setError("");
-    const r = await fetch("/api/auth/login", { method: "POST", body: JSON.stringify({ email, password }) });
+    const r = await fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) });
     setBusy(false);
     if (!r.ok) { setError("E-mail ou senha incorretos."); return; }
     router.push("/"); router.refresh();

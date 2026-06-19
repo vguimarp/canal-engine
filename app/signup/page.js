@@ -15,7 +15,7 @@ export default function Signup() {
   const submit = async (e) => {
     e.preventDefault();
     setBusy(true); setError("");
-    const r = await fetch("/api/auth/signup", { method: "POST", body: JSON.stringify({ name, email, password }) });
+    const r = await fetch("/api/auth/signup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, email, password }) });
     const data = await r.json().catch(() => ({}));
     setBusy(false);
     if (!r.ok) { setError(data.error || "Não foi possível criar a conta."); return; }
