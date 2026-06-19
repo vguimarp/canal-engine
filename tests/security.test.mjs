@@ -20,7 +20,7 @@ test("checkout validation accepts starter monthly stripe", () => {
 });
 
 test("database health exposes expected SaaS tables", () => {
-  const health = databaseHealth();
+  const health = databaseHealth({ deep: true });
   assert.equal(health.ok, true);
   assert.equal(health.counts.plans >= 4, true);
   assert.equal(typeof health.counts.provider_webhooks, "number");
