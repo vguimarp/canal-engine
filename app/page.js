@@ -5,23 +5,27 @@ import Nav from "@/components/Nav";
 import { Shell, PageHead, Stat, Panel, Bar, Tag } from "@/components/ui";
 import { Dica, BotaoGrande, Passo } from "@/components/help";
 import { useActiveChannel } from "@/components/channel";
+import { safeJson } from "@/components/data";
 
 export default function Home() {
   const [channelId] = useActiveChannel();
   const [data, setData] = useState(null);
   const [learn, setLearn] = useState(null);
   const [execution, setExecution] = useState(null);
+  const [loadError, setLoadError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
 
   const load = async () => {
+    setLoadError(false);
     const [d, m, e] = await Promise.all([
-      fetch(`/api/dashboard?channelId=${channelId}`).then((r) => r.json()),
-      fetch(`/api/metrics?channelId=${channelId}`).then((r) => r.json()),
-      fetch("/api/execution/status").then((r) => r.json()),
+      safeJson(`/api/dashboard?channelId=${channelId}`),
+      safeJson(`/api/metrics?channelId=${channelId}`, undefined, { learnings: [] }),
+      safeJson("/api/execution/status", undefined, {}),
     ]);
-    setData(d); setLearn(m);
-    setExecution(e);
+    if (!d || d.__error) { setLoadError(true); return; }
+    setData(d); setLearn(m && !m.__error ? m : { learnings: [] });
+    setExecution(e && !e.__error ? e : {});
   };
   useEffect(() => { load(); }, [channelId]);
 
@@ -101,6 +105,19 @@ export default function Home() {
             </Passo>
           </div>
         </Panel>
+
+        {!data && loadError && (
+          <div className="border border-alert bg-paper-2 p-4 text-sm text-alert fade-in">
+            ⚠ Não consegui carregar os dados do painel agora.
+            <button onClick={load} className="ml-2 underline text-amber">tentar de novo</button>
+          </div>
+        )}
+        {!data && !loadError && (
+          <div className="flex items-center gap-2 text-ink-dim text-sm py-8 justify-center fade-in">
+            <span className="inline-block w-3 h-3 rounded-full border-2 border-amber border-t-transparent animate-spin" />
+            Carregando seu painel…
+          </div>
+        )}
 
         {data && (
           <>
@@ -344,7 +361,7 @@ export default function Home() {
                     <div key={v.id}>
                       <div className="flex justify-between text-sm mb-1">
                         <span className="text-ink truncate pr-3">{v.title}</span>
-                        <span className="text-ink-dim shrink-0">{Number(v.views).toLocaleString("pt-BR")}</span>
+                        <span className="text-ink-dim shrink-0">{Number(v.views || 0).toLocaleString("pt-BR")}</span>
                       </div>
                       <Bar value={v.views} max={data.topVideos[0]?.views || 1} />
                     </div>
