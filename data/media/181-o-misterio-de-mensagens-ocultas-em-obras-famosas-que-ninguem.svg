@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#0f172a"/>
+      <stop offset="0.55" stop-color="#164e63"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <rect x="56" y="56" width="1168" height="608" rx="28" fill="rgba(2,6,23,0.48)" stroke="#f8fafc" stroke-opacity="0.28" stroke-width="3"/>
+  <rect x="92" y="96" width="226" height="42" rx="21" fill="#f59e0b"/>
+  <text x="205" y="124" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="800" fill="#111827">CAPA IA LOCAL</text>
+  <text x="92" y="196" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="900" fill="#ffffff">
+    <tspan x="92" dy="0">O mistério de mensagens</tspan><tspan x="92" dy="82">ocultas em obras famosas</tspan><tspan x="92" dy="82">que ninguém conseguiu</tspan>
+  </text>
+  <text x="92" y="548" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" fill="#fde68a">mensagens ocultas em obras famosas · score 79</text>
+  <text x="92" y="596" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#dbeafe">Editorial premium original</text>
+  <circle cx="1090" cy="205" r="86" fill="#f8fafc" fill-opacity="0.13"/>
+  <circle cx="1090" cy="205" r="48" fill="#f59e0b"/>
+  <path d="M1077 174 L1124 205 L1077 236 Z" fill="#111827"/>
+</svg>

@@ -20,13 +20,13 @@ export default function Login() {
   };
 
   return (
-    <AuthShell title="Entrar" subtitle="Acesse sua central de canais.">
+    <AuthShell title="Acessar minha conta" subtitle="Acesse sua central de canais.">
       <form onSubmit={submit} className="space-y-3">
         <Field label="E-mail" type="email" value={email} onChange={setEmail} placeholder="voce@email.com" />
         <Field label="Senha" type="password" value={password} onChange={setPassword} placeholder="••••••••" />
         {error && <div className="text-alert text-[12px]">⚠ {error}</div>}
         <button disabled={busy} className="w-full bg-amber text-paper text-sm font-bold uppercase tracking-wide py-2.5 rounded-md hover:bg-ink transition-colors disabled:opacity-50">
-          {busy ? "Entrando…" : "Entrar"}
+          {busy ? "Entrando…" : "Acessar minha conta"}
         </button>
       </form>
       <p className="text-ink-dim text-[12px] mt-5 text-center">

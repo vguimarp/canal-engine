@@ -42,7 +42,7 @@ export default function ProfilePage() {
           <div className="grid lg:grid-cols-[1fr_360px] gap-4">
             <Panel title="Dados cadastrais">
               <form onSubmit={save} className="grid md:grid-cols-2 gap-3">
-                {["name","phone","whatsapp","country","state","city","companyName","document","website","niche","channelSize","mainGoal"].map((k) => (
+                {["name","avatarUrl","phone","whatsapp","country","state","city","companyName","document","website","niche","channelSize","mainGoal"].map((k) => (
                   <label key={k} className="block">
                     <span className="text-ink-dim text-[10px] tracking-widest uppercase">{label(k)}</span>
                     <input value={form[k] || ""} onChange={(e) => set(k, e.target.value)}
@@ -80,7 +80,7 @@ export default function ProfilePage() {
 }
 
 function label(k) {
-  return ({ name: "Nome", phone: "Celular", whatsapp: "WhatsApp", country: "País", state: "Estado", city: "Cidade", companyName: "Empresa", document: "CPF/CNPJ", website: "Site", niche: "Nicho", channelSize: "Tamanho do canal", mainGoal: "Objetivo" })[k] || k;
+  return ({ name: "Nome", avatarUrl: "Foto/avatar URL", phone: "Celular", whatsapp: "WhatsApp", country: "País", state: "Estado", city: "Cidade", companyName: "Empresa", document: "CPF/CNPJ", website: "Site", niche: "Nicho", channelSize: "Tamanho do canal", mainGoal: "Objetivo" })[k] || k;
 }
 function Check({ checked, onChange, children }) {
   return <label className="flex gap-2 border border-line p-3 rounded-md"><input type="checkbox" checked={!!checked} onChange={(e) => onChange(e.target.checked)} />{children}</label>;

@@ -3,6 +3,20 @@
 -- Cada tabela suporta uma das tarefas do sistema.
 -- ============================================================
 
+-- Tickets de suporte (FASE 25)
+CREATE TABLE IF NOT EXISTS support_tickets (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id     INTEGER,
+  email       TEXT,
+  subject     TEXT NOT NULL,
+  message     TEXT NOT NULL,
+  status      TEXT DEFAULT 'aberto',  -- aberto | em_analise | respondido | fechado
+  reply       TEXT,
+  created_at  TEXT DEFAULT (datetime('now')),
+  updated_at  TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_tickets_user ON support_tickets(user_id);
+
 -- Canais (multicanal desde o início — Tarefa: escalar para 3 canais)
 -- Usuários (FASE 2 — Autenticação).
 CREATE TABLE IF NOT EXISTS users (
@@ -12,6 +26,7 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   phone         TEXT,
   whatsapp      TEXT,
+  avatar_url    TEXT,
   country       TEXT,
   state         TEXT,
   city          TEXT,
@@ -23,6 +38,8 @@ CREATE TABLE IF NOT EXISTS users (
   channel_size  TEXT,
   main_goal     TEXT,
   acquisition_source TEXT,
+  lead_status   TEXT DEFAULT 'frio',
+  crm_tags      TEXT,
   plan          TEXT DEFAULT 'free',   -- free | pro | agency (FASE 4)
   role          TEXT DEFAULT 'user',   -- user | admin
   status        TEXT DEFAULT 'active', -- active | inactive
@@ -94,6 +111,19 @@ CREATE TABLE IF NOT EXISTS marketing_contacts (
   updated_at  TEXT DEFAULT (datetime('now')),
   UNIQUE(user_id, channel)
 );
+
+CREATE TABLE IF NOT EXISTS marketing_campaigns (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  name        TEXT NOT NULL,
+  channel     TEXT NOT NULL, -- email | whatsapp | sms
+  status      TEXT DEFAULT 'draft',
+  audience    TEXT,
+  content     TEXT,
+  created_by  INTEGER REFERENCES users(id),
+  created_at  TEXT DEFAULT (datetime('now')),
+  updated_at  TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_campaigns_channel ON marketing_campaigns(channel, status);
 
 CREATE TABLE IF NOT EXISTS delete_account_requests (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -76,12 +76,17 @@ function Dashboard({ data }) {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       <Stat label="Usuários" value={t.users || 0} accent />
+      <Stat label="MRR" value={money(t.mrrCents)} />
+      <Stat label="ARR" value={money(t.arrCents)} />
       <Stat label="Workspaces" value={t.workspaces || 0} />
       <Stat label="Canais" value={t.channels || 0} />
       <Stat label="Ideias" value={t.ideas || 0} />
       <Stat label="Thumbnails" value={t.thumbnails || 0} />
       <Stat label="Exportações" value={t.exports || 0} />
       <Stat label="Ativos" value={t.activeUsers || 0} />
+      <Stat label="Pagantes" value={t.payingUsers || 0} />
+      <Stat label="Conversão" value={`${t.freeToPaidConversion || 0}%`} />
+      <Stat label="Churn estimado" value={`${t.churnEstimated || 0}%`} />
       <Stat label="Erros 24h" value={t.errors24h || 0} />
     </div>
   );
@@ -114,9 +119,15 @@ function Crm({ users }) {
   const consentEmail = users.filter((u) => u.emailMarketingConsent).length;
   const consentWhatsapp = users.filter((u) => u.whatsappMarketingConsent).length;
   const consentSms = users.filter((u) => u.smsMarketingConsent).length;
+  const quente = users.filter((u) => u.leadStatus === "quente").length;
+  const morno = users.filter((u) => u.leadStatus === "morno").length;
+  const frio = users.filter((u) => (u.leadStatus || "frio") === "frio").length;
   return (
     <Panel title="CRM">
-      <div className="grid grid-cols-3 gap-3 mb-4">
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 mb-4">
+        <Stat label="Leads quentes" value={quente} accent />
+        <Stat label="Leads mornos" value={morno} />
+        <Stat label="Leads frios" value={frio} />
         <Stat label="E-mail permitido" value={consentEmail} />
         <Stat label="WhatsApp permitido" value={consentWhatsapp} />
         <Stat label="SMS permitido" value={consentSms} />
@@ -141,6 +152,10 @@ function Logs({ data }) {
 }
 function Settings({ data }) {
   return <Panel title="Configurações"><pre className="text-ink-dim text-xs whitespace-pre-wrap">{JSON.stringify(data || {}, null, 2)}</pre></Panel>;
+}
+
+function money(cents = 0) {
+  return (Number(cents || 0) / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 }
 
 function Rows({ title, rows = [], fields = [] }) {
