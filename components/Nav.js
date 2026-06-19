@@ -62,6 +62,8 @@ export default function Nav() {
         })}
       </nav>
       <div className="mt-10 pt-5 border-t border-line text-[10px] text-ink-dim leading-relaxed">
+        <button onClick={() => { try { localStorage.removeItem("canal-engine:onboarded"); location.reload(); } catch {} }}
+          className="text-amber hover:underline mb-3 block">↻ Rever tutorial</button>
         <span className="text-ok">●</span> Conformidade ativa<br />
         Política de conteúdo<br />autêntico (jul/2025)
       </div>
