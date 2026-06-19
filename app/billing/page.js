@@ -40,6 +40,7 @@ export default function BillingPage() {
 
         <div className="grid lg:grid-cols-3 gap-4 my-4">
           <PlanCard title="FREE" active={plan.code === "free"} text="Para validar um canal com limites iniciais." />
+          <PlanCard title="STARTER" active={plan.code === "starter"} text="Até 3 canais, 100 ideias por mês e 20 execuções." href="/billing/checkout?plan=starter" />
           <PlanCard title="PRO" active={plan.code === "pro"} text="Até 10 canais, ideias e execuções ilimitadas." href="/billing/checkout?plan=pro" />
           <PlanCard title="AGENCY" active={plan.code === "agency"} text="Operação multiworkspace e prioridade de processamento." href="/billing/checkout?plan=agency" />
         </div>

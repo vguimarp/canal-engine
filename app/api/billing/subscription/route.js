@@ -14,12 +14,12 @@ export async function PATCH(request) {
     return NextResponse.json({ subscription: cancelSubscription({ workspaceId, userId }) });
   }
   const planCode = String(body.planCode || "").toLowerCase();
-  if (!["free", "pro", "agency"].includes(planCode)) {
+  if (!["free", "starter", "pro", "agency"].includes(planCode)) {
     return NextResponse.json({ error: "Plano inválido." }, { status: 400 });
   }
   const adminSecret = process.env.BILLING_ADMIN_SECRET;
   const isInternal = adminSecret && request.headers.get("x-billing-admin-secret") === adminSecret;
-  if (["pro", "agency"].includes(planCode) && !isInternal) {
+  if (["starter", "pro", "agency"].includes(planCode) && !isInternal) {
     return NextResponse.json({ error: "Para ativar plano pago, use o checkout ou aguarde confirmação do pagamento." }, { status: 402 });
   }
   return NextResponse.json({

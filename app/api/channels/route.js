@@ -3,6 +3,7 @@ import { getChannelsWithStats, createChannel } from "@/lib/queries";
 import { currentWorkspaceId } from "@/lib/tenant";
 import { getSession } from "@/lib/session";
 import { checkUsageLimit } from "@/lib/billing";
+import { schemas, validate } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,8 @@ export async function GET() {
 // Cria um novo canal — vinculado à workspace/usuário atual.
 export async function POST(request) {
   const data = await request.json().catch(() => ({}));
+  const parsed = validate(schemas.channel, data);
+  if (parsed.error) return NextResponse.json(parsed, { status: 400 });
   const session = getSession();
   const workspaceId = currentWorkspaceId();
   const limit = checkUsageLimit({
@@ -23,7 +26,7 @@ export async function POST(request) {
     increment: 1,
   });
   if (!limit.allowed) return NextResponse.json({ error: limit.message, billing: limit.status }, { status: 402 });
-  const result = createChannel(data, {
+  const result = createChannel(parsed.data, {
     workspaceId,
     ownerUserId: session?.uid ?? null,
   });

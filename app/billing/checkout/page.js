@@ -42,7 +42,7 @@ function CheckoutContent() {
         </PageHead>
         <Panel title="Configurar assinatura">
           <div className="grid md:grid-cols-3 gap-4">
-            <Select label="Plano" value={planCode} setValue={setPlanCode} options={[["pro", "PRO"], ["agency", "AGENCY"]]} />
+            <Select label="Plano" value={planCode} setValue={setPlanCode} options={[["starter", "STARTER"], ["pro", "PRO"], ["agency", "AGENCY"]]} />
             <Select label="Ciclo" value={interval} setValue={setInterval} options={[["monthly", "Mensal"], ["annual", "Anual"]]} />
             <Select label="Pagamento" value={provider} setValue={setProvider} options={[["stripe", "Stripe"], ["mercado_pago", "Mercado Pago"], ["pix", "PIX"]]} />
           </div>

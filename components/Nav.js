@@ -17,6 +17,9 @@ const NAV = [
   { href: "/estrategia", label: "Estratégia", code: "08" },
   { href: "/execucao", label: "Execução", code: "09" },
   { href: "/billing", label: "Plano", code: "10" },
+  { href: "/settings/ai", label: "IA", code: "11" },
+  { href: "/settings/billing", label: "Gateways", code: "12" },
+  { href: "/admin", label: "Admin", code: "13" },
 ];
 
 export default function Nav() {

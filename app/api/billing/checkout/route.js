@@ -2,14 +2,15 @@ import { NextResponse } from "next/server";
 import { currentUserId, currentWorkspaceId } from "@/lib/tenant";
 import { createCheckout } from "@/lib/billingProviders";
 import { logEvent } from "@/lib/monitoring";
+import { schemas, validate } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request) {
   const body = await request.json().catch(() => ({}));
-  const planCode = String(body.planCode || "").toLowerCase().trim();
-  const provider = String(body.provider || "stripe").toLowerCase().trim();
-  const interval = String(body.interval || "monthly").toLowerCase().trim();
+  const parsed = validate(schemas.billingCheckout, body);
+  if (parsed.error) return NextResponse.json(parsed, { status: 400 });
+  const { planCode, provider, interval } = parsed.data;
   const workspaceId = currentWorkspaceId();
   const userId = currentUserId();
   if (!userId) return NextResponse.json({ error: "Entre na sua conta para assinar um plano." }, { status: 401 });
