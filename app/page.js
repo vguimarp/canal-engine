@@ -14,24 +14,27 @@ export default function Home() {
   const [execution, setExecution] = useState(null);
   const [billing, setBilling] = useState(null);
   const [system, setSystem] = useState(null);
+  const [admin, setAdmin] = useState(null);
   const [loadError, setLoadError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
 
   const load = async () => {
     setLoadError(false);
-    const [d, m, e, b, s] = await Promise.all([
+    const [d, m, e, b, s, a] = await Promise.all([
       safeJson(`/api/dashboard?channelId=${channelId}`),
       safeJson(`/api/metrics?channelId=${channelId}`, undefined, { learnings: [] }),
       safeJson("/api/execution/status", undefined, {}),
       safeJson("/api/billing/status", undefined, null),
       safeJson("/api/monitoring/health", undefined, null),
+      safeJson("/api/admin/overview", undefined, null),
     ]);
     if (!d || d.__error) { setLoadError(true); return; }
     setData(d); setLearn(m && !m.__error ? m : { learnings: [] });
     setExecution(e && !e.__error ? e : {});
     setBilling(b && !b.__error ? b : null);
     setSystem(s && !s.__error ? s : null);
+    setAdmin(a && !a.__error ? a : null);
   };
   useEffect(() => { load(); }, [channelId]);
 
@@ -181,6 +184,20 @@ export default function Home() {
                 </div>
               </Panel>
             )}
+
+            <Panel title="KPIs executivos">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <Stat label="MRR" value={admin ? money(admin.kpis?.mrrCents) : "restrito"} accent />
+                <Stat label="ARR" value={admin ? money(admin.kpis?.arrCents) : "restrito"} />
+                <Stat label="Receita" value={admin ? money(admin.kpis?.revenueCents) : "restrito"} />
+                <Stat label="Conversão" value={admin ? `${admin.kpis?.conversionRate || 0}%` : "restrito"} />
+                <Stat label="Usuários ativos" value={admin?.kpis?.activeUsers ?? "restrito"} />
+                <Stat label="Uso IA" value={system?.aiCalls24h ?? 0} />
+                <Stat label="Custos IA" value={admin ? money(admin.kpis?.aiCostCents) : "restrito"} />
+                <Stat label="Canais criados" value={admin?.kpis?.channels ?? data.analytics?.channelRanking?.length ?? 0} />
+                <Stat label="Vídeos gerados" value={admin?.kpis?.videos ?? data.content.longVideos} />
+              </div>
+            </Panel>
 
             <Panel title="Foco automático" action={<Link href="/execucao" className="text-[11px] tracking-wider uppercase text-amber hover:text-ink">Abrir execução</Link>}>
               <div className="grid lg:grid-cols-4 gap-3">
@@ -491,6 +508,10 @@ function PlanCard({ title, text, active, onClick }) {
       )}
     </div>
   );
+}
+
+function money(cents = 0) {
+  return (Number(cents || 0) / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 }
 
 function RankList({ rows = [], label, sub, value }) {

@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
   name          TEXT,
   password_hash TEXT NOT NULL,
   plan          TEXT DEFAULT 'free',   -- free | pro | agency (FASE 4)
+  role          TEXT DEFAULT 'user',   -- user | admin
   workspace_id  INTEGER,               -- workspace primária do usuário (FASE 3)
   created_at    TEXT DEFAULT (datetime('now'))
 );

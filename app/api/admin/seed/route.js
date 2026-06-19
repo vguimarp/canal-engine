@@ -3,6 +3,8 @@ import path from "path";
 import { getDb, syncDb } from "@/lib/db";
 import { seedDatabase } from "@/lib/seedData";
 import { seedTurso } from "@/lib/tursoSeed";
+import { getSession } from "@/lib/session";
+import { isAdminUser } from "@/lib/users";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -16,6 +18,9 @@ const OFFICIAL_TURSO_URL = "libsql://canal-engine-vguimarp.aws-us-east-1.turso.i
 export async function POST(request) {
   const sp = new URL(request.url).searchParams;
   const force = sp.get("force") === "1";
+  if (!authorized(request, sp)) {
+    return NextResponse.json({ ok: false, error: "Acesso restrito ao administrador." }, { status: 403 });
+  }
   const token = process.env.TURSO_AUTH_TOKEN;
   const url = process.env.TURSO_DATABASE_URL || OFFICIAL_TURSO_URL;
 
@@ -73,5 +78,12 @@ function countAfter() {
 }
 
 export async function GET() {
-  return NextResponse.json({ usage: "POST /api/admin/seed (ou ?force=1). Com token popula o Turso em lotes; sem token, modo demo." });
+  return NextResponse.json({ usage: "POST /api/admin/seed. Requer admin logado ou ADMIN_SECRET." });
+}
+
+function authorized(request, sp) {
+  if (isAdminUser(getSession()?.uid)) return true;
+  const secret = process.env.ADMIN_SECRET;
+  const provided = sp.get("secret") || request.headers.get("x-admin-secret");
+  return !!secret && provided === secret;
 }

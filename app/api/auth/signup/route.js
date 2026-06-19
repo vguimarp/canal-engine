@@ -13,6 +13,6 @@ export async function POST(request) {
   if (parsed.error) return NextResponse.json(parsed, { status: 400 });
   const res = createUser(parsed.data);
   if (res?.error) return NextResponse.json(res, { status: 400 });
-  setSessionCookie({ uid: res.id, email: res.email, plan: "free" });
-  return NextResponse.json({ ok: true, user: { id: res.id, email: res.email, plan: "free" } }, { status: 201 });
+  setSessionCookie({ uid: res.id, email: res.email, plan: "free", role: "user" });
+  return NextResponse.json({ ok: true, user: { id: res.id, email: res.email, plan: "free", role: "user" } }, { status: 201 });
 }

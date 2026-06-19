@@ -20,6 +20,8 @@ const NAV = [
   { href: "/settings/ai", label: "IA", code: "11" },
   { href: "/settings/billing", label: "Gateways", code: "12" },
   { href: "/admin", label: "Admin", code: "13" },
+  { href: "/status", label: "Status", code: "14" },
+  { href: "/pricing", label: "Preços", code: "15" },
 ];
 
 export default function Nav() {
