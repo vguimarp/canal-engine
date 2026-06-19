@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { getAnalyticsRecommendations } from "@/lib/queries";
+import { resolveChannelId } from "@/lib/tenant";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request) {
-  const sp = new URL(request.url).searchParams;
-  const channelId = Number(sp.get("channelId") || sp.get("channel") || 1);
-  return NextResponse.json(getAnalyticsRecommendations(channelId));
+  const resolved = resolveChannelId(request);
+  if (resolved.error) return NextResponse.json({ actions: [], produceNow: [], produceLater: [], archive: [] });
+  return NextResponse.json(getAnalyticsRecommendations(resolved.channelId, resolved.workspaceId));
 }

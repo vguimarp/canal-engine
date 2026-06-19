@@ -4,16 +4,27 @@
 -- ============================================================
 
 -- Canais (multicanal desde o início — Tarefa: escalar para 3 canais)
--- Usuários (FASE 2 — Autenticação). Multi-tenant vem na FASE 3 (user_id em channels).
+-- Usuários (FASE 2 — Autenticação).
 CREATE TABLE IF NOT EXISTS users (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   email         TEXT NOT NULL UNIQUE,
   name          TEXT,
   password_hash TEXT NOT NULL,
   plan          TEXT DEFAULT 'free',   -- free | pro | agency (FASE 4)
+  workspace_id  INTEGER,               -- workspace primária do usuário (FASE 3)
   created_at    TEXT DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+
+-- Workspaces (FASE 3 — Multiusuário). Cada usuário tem a sua; existe 1 demo.
+CREATE TABLE IF NOT EXISTS workspaces (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  name          TEXT NOT NULL,
+  owner_user_id INTEGER REFERENCES users(id),   -- NULL = sistema (demo)
+  is_demo       INTEGER DEFAULT 0,
+  created_at    TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_workspaces_owner ON workspaces(owner_user_id);
 
 CREATE TABLE IF NOT EXISTS channels (
   id                 INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,8 +37,11 @@ CREATE TABLE IF NOT EXISTS channels (
   posting_frequency  TEXT,                 -- ex.: "2 vídeos/semana"
   main_goal          TEXT,                 -- objetivo principal
   active             INTEGER DEFAULT 1,    -- 1 ativo | 0 inativo
+  workspace_id       INTEGER,              -- workspace dona (FASE 3); NULL→demo
+  owner_user_id      INTEGER,              -- usuário dono; NULL = sistema/demo
   created_at         TEXT DEFAULT (datetime('now'))
 );
+CREATE INDEX IF NOT EXISTS idx_channels_workspace ON channels(workspace_id);
 
 -- Tendências pesquisadas (Tarefa 1)
 CREATE TABLE IF NOT EXISTS trends (

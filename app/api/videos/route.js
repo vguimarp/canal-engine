@@ -3,23 +3,30 @@ import { getDb } from "@/lib/db";
 import { getVideos, getIdeaById, produceVideoFromIdea } from "@/lib/queries";
 import { generatePackage, generateThumbnail, generateDerivatives, buildSeoPackage,
   generateThumbnailSet, generateDistribution } from "@/lib/skills";
+import { ideaBelongsToWorkspace, resolveBodyChannel, resolveChannelId } from "@/lib/tenant";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 export async function GET(request) {
-  const channelId = (()=>{const sp=new URL(request.url).searchParams;return Number(sp.get("channelId")||sp.get("channel")||1);})();
-  return NextResponse.json(getVideos(channelId));
+  const resolved = resolveChannelId(request);
+  if (resolved.error) return NextResponse.json([]);
+  return NextResponse.json(getVideos(resolved.channelId));
 }
 
 // Produz um vídeo completo a partir de uma ideia aprovada (Fase 1 — pipeline).
 // Gera pacote (título/descrição/roteiro), thumbnail e derivados, e persiste.
 export async function POST(request) {
-  const { ideaId, channelId = 1 } = await request.json().catch(() => ({}));
+  const body = await request.json().catch(() => ({}));
+  const { ideaId } = body;
   if (!ideaId) return NextResponse.json({ error: "ideaId é obrigatório" }, { status: 400 });
+  if (!ideaBelongsToWorkspace(Number(ideaId))) return NextResponse.json({ error: "Ideia não encontrada" }, { status: 404 });
 
   const idea = getIdeaById(ideaId);
   if (!idea) return NextResponse.json({ error: "Ideia não encontrada" }, { status: 404 });
+  const resolved = resolveBodyChannel({ ...body, channelId: idea.channel_id }, { required: true });
+  if (resolved.error) return NextResponse.json({ error: resolved.error }, { status: resolved.status });
+  const channelId = resolved.channelId;
   if (idea.channel_id !== channelId)
     return NextResponse.json({ error: "Ideia não pertence a este canal" }, { status: 400 });
   if (idea.format !== "long")

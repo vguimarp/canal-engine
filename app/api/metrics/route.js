@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { getMetricsForLearning } from "@/lib/queries";
 import { extractLearnings } from "@/lib/skills";
+import { resolveChannelId } from "@/lib/tenant";
 
 export const dynamic = "force-dynamic";
 
 // Retorna aprendizados extraídos das métricas (Tarefa 8 — memória).
 export async function GET(request) {
-  const channelId = (()=>{const sp=new URL(request.url).searchParams;return Number(sp.get("channelId")||sp.get("channel")||1);})();
-  const metrics = getMetricsForLearning(channelId);
+  const resolved = resolveChannelId(request);
+  if (resolved.error) return NextResponse.json({ learnings: [], sampleSize: 0 });
+  const metrics = getMetricsForLearning(resolved.channelId);
   return NextResponse.json({ learnings: extractLearnings(metrics), sampleSize: metrics.length });
 }

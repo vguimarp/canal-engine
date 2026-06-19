@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getVideoById, getIdeaById, saveSeoPackage, getSeoPackage } from "@/lib/queries";
 import { buildSeoPackage } from "@/lib/skills";
+import { videoBelongsToWorkspace } from "@/lib/tenant";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +10,7 @@ export const dynamic = "force-dynamic";
 export async function POST(request) {
   const { videoId } = await request.json().catch(() => ({}));
   if (!videoId) return NextResponse.json({ error: "videoId é obrigatório" }, { status: 400 });
+  if (!videoBelongsToWorkspace(Number(videoId))) return NextResponse.json({ error: "Vídeo não encontrado" }, { status: 404 });
 
   const video = getVideoById(Number(videoId));
   if (!video) return NextResponse.json({ error: "Vídeo não encontrado" }, { status: 404 });

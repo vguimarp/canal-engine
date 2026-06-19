@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDb, batchWrite } from "@/lib/db";
 import { researchTrends, generateIdeas, generateKeywords } from "@/lib/skills";
+import { resolveBodyChannel } from "@/lib/tenant";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -8,7 +9,10 @@ export const maxDuration = 60;
 // "Fazer tudo": pesquisa tendências, gera ideias e monta SEO numa tacada.
 // Escreve em LOTE (rápido no Turso) em vez de linha-a-linha (~35s antes).
 export async function POST(request) {
-  const { channelId = 1 } = await request.json().catch(() => ({}));
+  const body = await request.json().catch(() => ({}));
+  const resolved = resolveBodyChannel(body, { required: true });
+  if (resolved.error) return NextResponse.json({ error: resolved.error }, { status: resolved.status });
+  const channelId = resolved.channelId;
   const db = getDb();
   const channel = db.prepare("SELECT niche FROM channels WHERE id=?").get(channelId);
   if (!channel) return NextResponse.json({ error: "Canal não encontrado" }, { status: 404 });

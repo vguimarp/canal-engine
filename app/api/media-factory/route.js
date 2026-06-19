@@ -1,19 +1,22 @@
 import { NextResponse } from "next/server";
-import { generateMediaFactoryForVideo, getMediaFactoryOverview } from "@/lib/queries";
+import { generateMediaFactoryForVideo, getMediaFactoryOverview, getVideoById } from "@/lib/queries";
+import { resolveChannelId, videoBelongsToWorkspace } from "@/lib/tenant";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request) {
-  const sp = new URL(request.url).searchParams;
-  const channelId = Number(sp.get("channelId") || sp.get("channel") || 1);
-  return NextResponse.json(getMediaFactoryOverview(channelId));
+  const resolved = resolveChannelId(request);
+  if (resolved.error) return NextResponse.json({ summary: {}, assets: [], groups: {} });
+  return NextResponse.json(getMediaFactoryOverview(resolved.channelId));
 }
 
 export async function POST(request) {
   const body = await request.json().catch(() => ({}));
-  const channelId = Number(body.channelId || body.channel || 1);
   const videoId = Number(body.videoId);
   if (!videoId) return NextResponse.json({ error: "videoId é obrigatório" }, { status: 400 });
+  if (!videoBelongsToWorkspace(videoId)) return NextResponse.json({ error: "Vídeo não encontrado" }, { status: 404 });
+  const video = getVideoById(videoId);
+  const channelId = video.channel_id;
   const result = generateMediaFactoryForVideo(channelId, videoId);
   if (!result) return NextResponse.json({ error: "Vídeo não encontrado neste canal" }, { status: 404 });
   if (result.error) return NextResponse.json(result, { status: 409 });
