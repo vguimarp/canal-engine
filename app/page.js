@@ -27,10 +27,21 @@ export default function Home() {
 
   const fazerTudo = async () => {
     setBusy(true); setMsg("");
-    const r = await fetch("/api/run-all", { method: "POST", body: JSON.stringify({ channelId }) }).then((x) => x.json());
+    let r = {};
+    try {
+      const resp = await fetch("/api/run-all", { method: "POST", body: JSON.stringify({ channelId }) });
+      r = await resp.json().catch(() => ({}));
+      if (!resp.ok || r.error) throw new Error(r.error || "Falha ao gerar conteúdo.");
+    } catch (e) {
+      setBusy(false);
+      setMsg(`⚠ Não consegui gerar agora: ${e.message} Verifique se há um canal selecionado.`);
+      return;
+    }
     await load();
     setBusy(false);
-    setMsg(`Pronto! Criei ${r.trends} tendencias, ${r.ideas} ideias e ${r.keywords} palavras-chave. Veja nas abas ao lado.`);
+    // Defensivo: nunca exibe "undefined" — usa 0 quando a chave faltar.
+    const t = r.trends ?? 0, i = r.ideas ?? 0, k = r.keywords ?? 0;
+    setMsg(`Pronto! Criei ${t} tendências, ${i} ideias e ${k} palavras-chave. Veja nas abas ao lado.`);
   };
 
   const temConteudo = data && data.counts.ideas > 0;
