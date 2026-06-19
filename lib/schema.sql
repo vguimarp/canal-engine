@@ -3,6 +3,20 @@
 -- Cada tabela suporta uma das tarefas do sistema.
 -- ============================================================
 
+-- Tickets de suporte (FASE 25)
+CREATE TABLE IF NOT EXISTS support_tickets (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id     INTEGER,
+  email       TEXT,
+  subject     TEXT NOT NULL,
+  message     TEXT NOT NULL,
+  status      TEXT DEFAULT 'aberto',  -- aberto | em_analise | respondido | fechado
+  reply       TEXT,
+  created_at  TEXT DEFAULT (datetime('now')),
+  updated_at  TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_tickets_user ON support_tickets(user_id);
+
 -- Canais (multicanal desde o início — Tarefa: escalar para 3 canais)
 -- Usuários (FASE 2 — Autenticação).
 CREATE TABLE IF NOT EXISTS users (
