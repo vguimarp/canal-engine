@@ -5,6 +5,7 @@ import { generatePackage, generateThumbnail, generateDerivatives, buildSeoPackag
   generateThumbnailSet, generateDistribution } from "@/lib/skills";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 export async function GET(request) {
   const channelId = (()=>{const sp=new URL(request.url).searchParams;return Number(sp.get("channelId")||sp.get("channel")||1);})();

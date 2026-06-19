@@ -3,6 +3,7 @@ import { getDb } from "@/lib/db";
 import { researchTrends, generateIdeas, generateKeywords } from "@/lib/skills";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 // "Fazer tudo": pesquisa tendências, gera ideias e monta SEO numa tacada.
 // Pensado para o usuário iniciante — um clique faz o ciclo completo.

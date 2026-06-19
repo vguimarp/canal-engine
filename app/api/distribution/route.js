@@ -3,6 +3,7 @@ import { getVideoById, getIdeaById, getSeoPackage, getDistributions, getDistribu
 import { generateDistribution } from "@/lib/skills";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 export async function GET(request) {
   const sp = new URL(request.url).searchParams;
